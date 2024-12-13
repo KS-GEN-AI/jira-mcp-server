@@ -1,6 +1,6 @@
 {
   "name": "jira_communication_server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Talk to jira",
   "private": true,
   "type": "module",
@@ -19,6 +19,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "0.6.0",
     "axios": "^1.7.9",
+    "mcp-framework": "^0.1.12",
     "okhttp": "^1.1.0"
   },
   "devDependencies": {
