@@ -237,11 +237,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 });
 
 
-//*
-// * Function to query assignable users for a project.
-// * @param {string} project_key - The project key to query assignable users for.
-// * @returns {Promise<any>}
-// */
+/**
+ * Function to query assignable users for a project.
+ * @param {string} project_key - The project key to query assignable users for.
+ * @returns {Promise<any>}
+ */
 async function queryAssignable(project_key: string): Promise<any> {
     try {
         const params = {
@@ -291,6 +291,14 @@ async function executeJQL(jql: string, maxResults: number): Promise<any> {
     }
 }
 
+/**
+ * Function to create a ticket on Jira.
+ * @param project
+ * @param summary
+ * @param description
+ * @param issuetype
+ * @param parentID
+ */
 async function createTicket(project: string, summary: string, description: string, issuetype: string, parentID?: string): Promise<any> {
     try {
         const jiraDescription = {
@@ -336,6 +344,10 @@ async function createTicket(project: string, summary: string, description: strin
     }
 }
 
+/**
+ * Function to get the authentication headers.
+ * @returns {AxiosRequestConfig}
+ */
 function getAuthHeaders(): AxiosRequestConfig<any> {
     const authHeader = `Basic ${Buffer.from(`${JIRA_API_MAIL}:${JIRA_API_KEY}`).toString('base64')}`;
     return {
@@ -346,6 +358,10 @@ function getAuthHeaders(): AxiosRequestConfig<any> {
     };
 }
 
+/** Function to list all projects on Jira.
+ * @returns {Promise<any>}
+ * @param number_of_results
+ */
 async function listProjects(number_of_results: number): Promise<any> {
     try {
         const params = {
@@ -367,6 +383,11 @@ async function listProjects(number_of_results: number): Promise<any> {
     }
 }
 
+/**
+ * Function to delete a ticket on Jira.
+ * @param issueIdOrKey
+ * @returns {Promise<any>}
+ */
 async function deleteTicket(issueIdOrKey: string): Promise<any> {
     try {
         const response = await axios.delete(`${JIRA_URL}/rest/api/3/issue/${issueIdOrKey}`, {
@@ -380,7 +401,15 @@ async function deleteTicket(issueIdOrKey: string): Promise<any> {
     }
 }
 
-//only modify the fields that are not null, if they are null, they will not be modified
+/**
+ * Function to edit a ticket on Jira.
+ * @param issueIdOrKey
+ * @param summary
+ * @param description
+ * @param labels
+ * @param parent
+ * @returns {Promise<any>}
+ */
 async function editTicket(issueIdOrKey?: string, summary?: string, description?: string, labels?: string[], parent?: string): Promise<any> {
     try {
         const descriptionToSend = description || 'No description provided';
@@ -429,6 +458,11 @@ async function editTicket(issueIdOrKey?: string, summary?: string, description?:
 
 }
 
+/**
+ * Function to get all the statuses on Jira.
+ * @param number_of_results
+ * @returns {Promise<any>}
+ */
 async function getAllStatus(number_of_results: number): Promise<any> {
     try {
         const params = {
@@ -449,6 +483,12 @@ async function getAllStatus(number_of_results: number): Promise<any> {
     }
 }
 
+/**
+ * Function to assign a ticket to a user.
+ * @param accountId
+ * @param issueIdOrKey
+ * @returns {Promise<any>}
+ */
 async function assignTicket(accountId: string, issueIdOrKey: string): Promise<any> {
     try {
         const response = await axios.put(`${JIRA_URL}/rest/api/3/issue/${issueIdOrKey}/assignee`, {
@@ -481,8 +521,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             }
 
 
-            console.log(`Executing JQL query: ${jql}`);
-
             const response = await executeJQL(jql, number_of_results);
 
             // Return the entire data from the response
@@ -501,8 +539,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             if (!jql) {
                 throw new Error("JQL query is required");
             }
-
-            console.log(`Executing JQL query: ${jql}`);
 
             const response = await executeJQL(jql, number_of_results);
 
@@ -534,8 +570,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 throw new Error('Project, summary, description and issuetype are required');
             }
 
-            console.log(`Creating ticket with summary: ${summary}`);
-
             try {
                 const response = await createTicket(project.key, summary, description, issuetype.name, parent);
 
@@ -558,8 +592,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         case 'list_projects': {
             const number_of_results = Number(request.params.arguments?.number_of_results ?? 1);
 
-            console.log('Listing projects');
-
             const response = await listProjects(number_of_results);
 
             return {
@@ -576,8 +608,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             if (!issueIdOrKey) {
                 throw new Error('Issue id or key is required');
             }
-
-            console.log(`Deleting ticket with id or key: ${issueIdOrKey}`);
 
             const response = await deleteTicket(issueIdOrKey);
 
@@ -600,8 +630,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 throw new Error('Issue id or key is required');
             }
 
-            console.log(`Editing ticket with id or key: ${issueIdOrKey}`);
-
             const response = await editTicket(issueIdOrKey, summary, description, labels, parent);
 
             return {
@@ -613,8 +641,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         case 'get_all_statuses': {
             const number_of_results = Number(request.params.arguments?.number_of_results ?? 50);
-
-            console.log('Getting all status');
 
             const response = await getAllStatus(number_of_results);
 
@@ -634,8 +660,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 throw new Error('Account id and issue id or key are required');
             }
 
-            console.log(`Assigning ticket with id or key: ${issueIdOrKey}`);
-
             const response = await assignTicket(accountId, issueIdOrKey);
 
             return {
@@ -652,8 +676,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             if (!project_key) {
                 throw new Error('Query is required');
             }
-
-            console.log(`Querying assignables with project_key: ${project_key}`);
 
             const response = await queryAssignable(project_key);
 
