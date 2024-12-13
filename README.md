@@ -1,149 +1,97 @@
-# jira-mcp-server
+# Jira communication server MCP Server
+# Jira communication server MCP Server
 
-A Model Context Protocol (MCP) server built with mcp-framework.
+Talk to Jira
 
-## Quick Start
+This is a TypeScript-based MCP server that provides tools to interact with Jira. It demonstrates core MCP concepts by providing:
 
+- Tools for executing JQL queries
+- Tools for creating, editing, and deleting Jira tickets
+- Tools for listing Jira projects and statuses
+
+## Features
+
+### Tools
+- `execute_jql` - Execute a JQL query on Jira
+  - Takes JQL query string and number of results as parameters
+  - Returns the full response from Jira
+
+- `get_only_ticket_name_and_description` - Get the name and description of the requested tickets
+  - Takes JQL query string and number of results as parameters
+  - Returns only the ticket name and description
+
+- `create_ticket` - Create a ticket on Jira
+  - Takes project key, summary, description, and issue type as required parameters
+  - Creates a new ticket in Jira
+
+- `list_projects` - List all the projects on Jira
+  - Takes number of results as a parameter
+  - Returns a list of projects
+
+- `delete_ticket` - Delete a ticket on Jira
+  - Takes issue id or key as a required parameter
+  - Deletes the specified ticket
+
+- `edit_ticket` - Edit a ticket on Jira
+  - Takes issue id or key, summary, description, priority, labels, components, and custom fields as parameters
+  - Edits the specified ticket
+
+- `get_all_statuses` - Get all the statuses on Jira
+  - Takes number of results as a parameter
+  - Returns a list of statuses
+
+- `assign_ticket` - Assign a ticket on Jira
+  - Takes account id and issue id or key as required parameters
+  - Assigns the specified ticket to the specified account
+
+## Development
+
+Install dependencies:
 ```bash
-# Install dependencies
 npm install
+```
 
-# Build the project
+Build the server:
+```bash
 npm run build
-
 ```
 
-## Project Structure
-
-```
-jira-mcp-server/
-├── src/
-│   ├── tools/        # MCP Tools
-│   │   └── ExampleTool.ts
-│   └── index.ts      # Server entry point
-├── package.json
-└── tsconfig.json
+For development with auto-rebuild:
+```bash
+npm run watch
 ```
 
-## Adding Components
+## Installation
 
-The project comes with an example tool in `src/tools/ExampleTool.ts`. You can add more tools using the CLI:
+To use with Claude Desktop, add the server config:
+
+On MacOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "Jira communication server": {
+      "command": "node",
+      "args": [
+        "/PATH_TO_THE_PROJECT/build/index.js"
+      ],
+      "env": {
+        "JIRA_URL": "https://XXXXXXXX.atlassian.net",
+        "JIRA_API_MAIL": "Your email",
+        "JIRA_API_KEY": "KEY_FROM : https://id.atlassian.com/manage-profile/security/api-tokens"
+      }
+    }
+  }
+}
+```
+
+### Debugging
+
+Since MCP servers communicate over stdio, debugging can be challenging. We recommend using the [MCP Inspector](https://github.com/modelcontextprotocol/inspector), which is available as a package script:
 
 ```bash
-# Add a new tool
-mcp add tool my-tool
-
-# Example tools you might create:
-mcp add tool data-processor
-mcp add tool api-client
-mcp add tool file-handler
+npm run inspector
 ```
 
-## Tool Development
-
-Example tool structure:
-
-```typescript
-import { MCPTool } from "mcp-framework";
-import { z } from "zod";
-
-interface MyToolInput {
-  message: string;
-}
-
-class MyTool extends MCPTool<MyToolInput> {
-  name = "my_tool";
-  description = "Describes what your tool does";
-
-  schema = {
-    message: {
-      type: z.string(),
-      description: "Description of this input parameter",
-    },
-  };
-
-  async execute(input: MyToolInput) {
-    // Your tool logic here
-    return `Processed: ${input.message}`;
-  }
-}
-
-export default MyTool;
-```
-
-## Publishing to npm
-
-1. Update your package.json:
-   - Ensure `name` is unique and follows npm naming conventions
-   - Set appropriate `version`
-   - Add `description`, `author`, `license`, etc.
-   - Check `bin` points to the correct entry file
-
-2. Build and test locally:
-   ```bash
-   npm run build
-   npm link
-   jira-mcp-server  # Test your CLI locally
-   ```
-
-3. Login to npm (create account if necessary):
-   ```bash
-   npm login
-   ```
-
-4. Publish your package:
-   ```bash
-   npm publish
-   ```
-
-After publishing, users can add it to their claude desktop client (read below) or run it with npx
-```
-
-## Using with Claude Desktop
-
-### Local Development
-
-Add this configuration to your Claude Desktop config file:
-
-**MacOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
-
-```json
-{
-  "mcpServers": {
-    "jira-mcp-server": {
-      "command": "node",
-      "args":["/absolute/path/to/jira-mcp-server/dist/index.js"]
-    }
-  }
-}
-```
-
-### After Publishing
-
-Add this configuration to your Claude Desktop config file:
-
-**MacOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
-
-```json
-{
-  "mcpServers": {
-    "jira-mcp-server": {
-      "command": "npx",
-      "args": ["jira-mcp-server"]
-    }
-  }
-}
-```
-
-## Building and Testing
-
-1. Make changes to your tools
-2. Run `npm run build` to compile
-3. The server will automatically load your tools on startup
-
-## Learn More
-
-- [MCP Framework Github](https://github.com/QuantGeekDev/mcp-framework)
-- [MCP Framework Docs](https://mcp-framework.com)
+The Inspector will provide a URL to access debugging tools in your browser.

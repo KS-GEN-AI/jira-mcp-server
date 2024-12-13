@@ -1,21 +1,25 @@
 {
-  "name": "jira-mcp-server",
-  "version": "0.0.1",
-  "description": "jira-mcp-server MCP server",
+  "name": "jira_communication_server",
+  "version": "0.1.0",
+  "description": "Talk to jira",
+  "private": true,
   "type": "module",
   "bin": {
-    "jira-mcp-server": "./dist/index.js"
+    "Jira communication server": "./build/index.js"
   },
   "files": [
-    "dist"
+    "build"
   ],
   "scripts": {
-    "build": "mcp-build",
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
     "prepare": "npm run build",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "inspector": "npx @modelcontextprotocol/inspector build/index.js"
   },
   "dependencies": {
-    "mcp-framework": "^0.1.8"
+    "@modelcontextprotocol/sdk": "0.6.0",
+    "axios": "^1.7.9",
+    "okhttp": "^1.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
