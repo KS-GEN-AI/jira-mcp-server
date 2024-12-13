@@ -1,5 +1,4 @@
 # Jira communication server MCP Server
-# Jira communication server MCP Server
 
 Talk to Jira
 
