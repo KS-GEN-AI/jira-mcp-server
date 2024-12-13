@@ -165,24 +165,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                             type: 'string',
                             description: 'The description of the ticket'
                         },
-                        assignee: {
-                            type: 'object',
-                            properties: {
-                                name: {
-                                    type: 'string',
-                                    description: 'The name of the assignee'
-                                }
-                            }
-                        },
-                        priority: {
-                            type: 'object',
-                            properties: {
-                                name: {
-                                    type: 'string',
-                                    description: 'The name of the priority'
-                                }
-                            }
-                        },
                         labels: {
                             type: 'array',
                             items: {
@@ -190,33 +172,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                             },
                             description: 'The labels of the ticket'
                         },
-                        components: {
-                            type: 'array',
-                            items: {
-                                type: 'object',
-                                properties: {
-                                    name: {
-                                        type: 'string',
-                                        description: 'The name of the component'
-                                    }
-                                }
-                            },
-                            description: 'The components of the ticket'
-                        },
-                        custom_fields: {
-                            type: 'object',
-                            properties: {
-                                name: {
-                                    type: 'string',
-                                    description: 'The name of the custom field'
-                                },
-                                value: {
-                                    type: 'string',
-                                    description: 'The value of the custom field'
-                                }
-                            },
-                            description: 'The custom fields of the ticket'
-                        }
                     },
                     required: ['issueIdOrKey']
                 }
@@ -254,14 +209,52 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                     },
                     required: ['accountId', 'issueIdOrKey']
                 }
+            },
+            //query assignables to ticket
+            {
+                name: 'query_assignable',
+                description: 'Query assignables to a ticket on Jira on the api /rest/api/3/user/assignable/search?project={project-name}',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        project_key: {
+                            type: 'string',
+                            description: 'The id of the project to search'
+                        }
+                    },
+                    required: ['project_key']
+                }
             }
         ]
     };
 });
 
+
+async function queryAssignable(project_key: string): Promise<any> {
+    try {
+        const params = {
+            project:project_key,  // JQL query string
+        };
+
+        const response = await axios.get(`${JIRA_URL}/rest/api/3/user/assignable/search`, {
+            headers: getAuthHeaders().headers,
+            params
+        });
+
+        return response.data;
+    } catch (error: any) {
+        //return the error in a json
+        return {
+            error: error.response.data
+        };
+    }
+}
+
+
 /**
  * Function to execute a JQL query against Jira.
  * @param {string} jql - JQL query string
+ * @param maxResults
  * @returns {Promise<any>}
  */
 async function executeJQL(jql: string, maxResults: number): Promise<any> {
@@ -372,107 +365,8 @@ async function deleteTicket(issueIdOrKey: string): Promise<any> {
 }
 
 //only modify the fields that are not null, if they are null, they will not be modified
-async function editTicket(issueIdOrKey?: string, summary?: string, description?: string, priority?: string, labels?: string[], components?: string[], custom_fields?: any): Promise<any> {
+async function editTicket(issueIdOrKey?: string, summary?: string, description?: string, labels?: string[]): Promise<any> {
     try {
-        //corect put object :// This sample uses Atlassian Forge
-        // // https://developer.atlassian.com/platform/forge/
-        // import api, { route } from "@forge/api";
-        //
-        // var bodyData = `{
-        //   "fields": {
-        //     "customfield_10000": {
-        //       "content": [
-        //         {
-        //           "content": [
-        //             {
-        //               "text": "Investigation underway",
-        //               "type": "text"
-        //             }
-        //           ],
-        //           "type": "paragraph"
-        //         }
-        //       ],
-        //       "type": "doc",
-        //       "version": 1
-        //     },
-        //     "customfield_10010": 1,
-        //     "summary": "Completed orders still displaying in pending"
-        //   },
-        //   "historyMetadata": {
-        //     "activityDescription": "Complete order processing",
-        //     "actor": {
-        //       "avatarUrl": "http://mysystem/avatar/tony.jpg",
-        //       "displayName": "Tony",
-        //       "id": "tony",
-        //       "type": "mysystem-user",
-        //       "url": "http://mysystem/users/tony"
-        //     },
-        //     "cause": {
-        //       "id": "myevent",
-        //       "type": "mysystem-event"
-        //     },
-        //     "description": "From the order testing process",
-        //     "extraData": {
-        //       "Iteration": "10a",
-        //       "Step": "4"
-        //     },
-        //     "generator": {
-        //       "id": "mysystem-1",
-        //       "type": "mysystem-application"
-        //     },
-        //     "type": "myplugin:type"
-        //   },
-        //   "properties": [
-        //     {
-        //       "key": "key1",
-        //       "value": "Order number 10784"
-        //     },
-        //     {
-        //       "key": "key2",
-        //       "value": "Order number 10923"
-        //     }
-        //   ],
-        //   "update": {
-        //     "components": [
-        //       {
-        //         "set": ""
-        //       }
-        //     ],
-        //     "labels": [
-        //       {
-        //         "add": "triaged"
-        //       },
-        //       {
-        //         "remove": "blocker"
-        //       }
-        //     ],
-        //     "summary": [
-        //       {
-        //         "set": "Bug in business logic"
-        //       }
-        //     ],
-        //     "timetracking": [
-        //       {
-        //         "edit": {
-        //           "originalEstimate": "1w 1d",
-        //           "remainingEstimate": "4d"
-        //         }
-        //       }
-        //     ]
-        //   }
-        // }`;
-        //
-        // const response = await api.asUser().requestJira(route`/rest/api/3/issue/{issueIdOrKey}`, {
-        //   method: 'PUT',
-        //   headers: {
-        //     'Accept': 'application/json',
-        //     'Content-Type': 'application/json'
-        //   },
-        //   body: bodyData
-        // });
-        //
-        // console.log(`Response: ${response.status} ${response.statusText}`);
-        // console.log(await response.json());
         const descriptionToSend = description || 'No description provided';
 
         const jiraDescription = {
@@ -495,9 +389,7 @@ async function editTicket(issueIdOrKey?: string, summary?: string, description?:
         const fields = {
             summary: summary,
             description: jiraDescription,
-            priority: priority ? {name: priority} : undefined,
             labels: labels,
-            components: components,
         }
 
         const response = await axios.put(`${JIRA_URL}/rest/api/3/issue/${issueIdOrKey}`, {
@@ -544,7 +436,7 @@ async function assignTicket(accountId: string, issueIdOrKey: string): Promise<an
             headers: getAuthHeaders().headers,
         });
 
-        return response;
+        return response.data;
     } catch (error: any) {
         return {
             error: error.response.data
@@ -679,9 +571,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             const summary: any = request.params.arguments?.summary;
             const description: any = request.params.arguments?.description;
             const priority: any = request.params.arguments?.priority;
-            const labels: any = request.params.arguments?.labels;
-            const components: any = request.params.arguments?.components;
-            const custom_fields: any = request.params.arguments?.custom_fields;
 
             if (!issueIdOrKey) {
                 throw new Error('Issue id or key is required');
@@ -689,7 +578,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
             console.log(`Editing ticket with id or key: ${issueIdOrKey}`);
 
-            const response = await editTicket(issueIdOrKey, summary, description, priority, labels, components, custom_fields);
+            const response = await editTicket(issueIdOrKey, summary, description, priority,);
 
             return {
                 content: [{
@@ -729,6 +618,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                 content: [{
                     type: 'text',
                     text: "Ticket assigned : " + JSON.stringify(response, null, 2)
+                }]
+            };
+        }
+
+        case 'query_assignable': {
+            const project_key: any = request.params.arguments?.project_key;
+
+            if (!project_key) {
+                throw new Error('Query is required');
+            }
+
+            console.log(`Querying assignables with project_key: ${project_key}`);
+
+            const response = await queryAssignable(project_key);
+
+            return {
+                content: [{
+                    type: 'text',
+                    text: JSON.stringify(response, null, 2)
                 }]
             };
         }
