@@ -16,7 +16,6 @@ const JIRA_API_MAIL = process.env.JIRA_API_MAIL;
 const JIRA_API_KEY = process.env.JIRA_API_KEY;
 
 
-
 /**
  * Create an MCP server to handle JQL queries.
  */
@@ -111,6 +110,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                                 }
                             },
                             required: ['name']
+                        },
+                        parent: {
+                            type: 'string',
+                            description: 'The key of the parent ticket (the epic)'
                         }
                     },
                     required: ['project', 'summary', 'description', 'issuetype']
@@ -172,6 +175,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                             },
                             description: 'The labels of the ticket'
                         },
+                        parent: {
+                            type: 'string',
+                            description: 'The key of the parent ticket (the epic)'
+                        }
                     },
                     required: ['issueIdOrKey']
                 }
@@ -230,10 +237,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 });
 
 
+//*
+// * Function to query assignable users for a project.
+// * @param {string} project_key - The project key to query assignable users for.
+// * @returns {Promise<any>}
+// */
 async function queryAssignable(project_key: string): Promise<any> {
     try {
         const params = {
-            project:project_key,  // JQL query string
+            project: project_key,  // JQL query string
         };
 
         const response = await axios.get(`${JIRA_URL}/rest/api/3/user/assignable/search`, {
@@ -279,7 +291,7 @@ async function executeJQL(jql: string, maxResults: number): Promise<any> {
     }
 }
 
-async function createTicket(project: string, summary: string, description: string, issuetype: string): Promise<any> {
+async function createTicket(project: string, summary: string, description: string, issuetype: string, parentID?: string): Promise<any> {
     try {
         const jiraDescription = {
             "type": "doc",
@@ -297,16 +309,20 @@ async function createTicket(project: string, summary: string, description: strin
             ]
         }
 
+        //parent is somethng like "parent": {"key": "SCRUM-19"}
+        const parent = parentID ? {key: parentID} : undefined;
+
         const response = await axios.post(`${JIRA_URL}/rest/api/3/issue`, {
             fields: {
                 project: {
                     key: project
                 },
                 summary,
-                description: description? jiraDescription : undefined,
+                description: description ? jiraDescription : undefined,
                 issuetype: {
                     name: issuetype
-                }
+                },
+                parent
             }
         }, {
             headers: getAuthHeaders().headers,
@@ -365,31 +381,36 @@ async function deleteTicket(issueIdOrKey: string): Promise<any> {
 }
 
 //only modify the fields that are not null, if they are null, they will not be modified
-async function editTicket(issueIdOrKey?: string, summary?: string, description?: string, labels?: string[]): Promise<any> {
+async function editTicket(issueIdOrKey?: string, summary?: string, description?: string, labels?: string[], parent?: string): Promise<any> {
     try {
         const descriptionToSend = description || 'No description provided';
 
-        const jiraDescription = {
-            "type": "doc",
-            "version": 1,
-            "content": [
+        const jiraDescription =
+            description === null ? undefined :
                 {
-                    "type": "paragraph",
+                    "type": "doc",
+                    "version": 1,
                     "content": [
                         {
-                            "type": "text",
-                            "text": descriptionToSend
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": descriptionToSend
+                                }
+                            ]
                         }
                     ]
                 }
-            ]
-        }
+
+        const parentToSend = parent ? {key: parent} : undefined;
 
         //we create the fields object with only the present fields
         const fields = {
             summary: summary,
             description: jiraDescription,
             labels: labels,
+            parent: parentToSend
         }
 
         const response = await axios.put(`${JIRA_URL}/rest/api/3/issue/${issueIdOrKey}`, {
@@ -400,7 +421,7 @@ async function editTicket(issueIdOrKey?: string, summary?: string, description?:
 
         return response.data;
 
-    }catch (error: any) {
+    } catch (error: any) {
         return {
             error: error.response.data
         };
@@ -443,6 +464,7 @@ async function assignTicket(accountId: string, issueIdOrKey: string): Promise<an
         };
     }
 }
+
 /**
  * Handler for the execute_jql tool.
  * Executes a JQL query and returns the full response.
@@ -506,6 +528,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             const summary: any = request.params.arguments?.summary;
             const description: any = request.params.arguments?.description;
             const issuetype: any = request.params.arguments?.issuetype;
+            const parent: any = request.params.arguments?.parent;
 
             if (!project || !summary || !description || !issuetype) {
                 throw new Error('Project, summary, description and issuetype are required');
@@ -514,7 +537,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             console.log(`Creating ticket with summary: ${summary}`);
 
             try {
-                const response = await createTicket(project.key, summary, description, issuetype.name);
+                const response = await createTicket(project.key, summary, description, issuetype.name, parent);
 
                 return {
                     content: [{
@@ -548,7 +571,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
 
         case 'delete_ticket': {
-            const issueIdOrKey :any = request.params.arguments?.issueIdOrKey;
+            const issueIdOrKey: any = request.params.arguments?.issueIdOrKey;
 
             if (!issueIdOrKey) {
                 throw new Error('Issue id or key is required');
@@ -570,7 +593,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             const issueIdOrKey: any = request.params.arguments?.issueIdOrKey;
             const summary: any = request.params.arguments?.summary;
             const description: any = request.params.arguments?.description;
-            const priority: any = request.params.arguments?.priority;
+            const labels: any = request.params.arguments?.labels;
+            const parent: any = request.params.arguments?.parent;
 
             if (!issueIdOrKey) {
                 throw new Error('Issue id or key is required');
@@ -578,7 +602,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
             console.log(`Editing ticket with id or key: ${issueIdOrKey}`);
 
-            const response = await editTicket(issueIdOrKey, summary, description, priority,);
+            const response = await editTicket(issueIdOrKey, summary, description, labels, parent);
 
             return {
                 content: [{
