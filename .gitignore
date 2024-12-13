@@ -2,3 +2,7 @@ node_modules/
 build/
 *.log
 .env*
+/.idea/jira-mcp-server.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
