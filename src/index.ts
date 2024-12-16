@@ -233,8 +233,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 }
             },
             {
-                name: 'add_attachment',
-                description: 'Add an attachment to a ticket on Jira on the api /rest/api/3/issue/{issueIdOrKey}/attachments',
+                name: 'add_attachment_from_public_url',
+                description: 'Add an attachment from a public url to a ticket on Jira on the api /rest/api/3/issue/{issueIdOrKey}/attachments',
                 inputSchema: {
                     type: 'object',
                     properties: {
@@ -249,10 +249,88 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                     },
                     required: ['issueIdOrKey', 'imageUrl']
                 }
+            },
+            {
+                name: 'add_attachment_from_confluence',
+                description: 'Add an attachment to a ticket on Jira from a Confluence page by its name on the api /rest/api/3/issue/{issueIdOrKey}/attachments',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        issueIdOrKey: {
+                            type: 'string',
+                            description: 'The issue id or key'
+                        },
+                        pageId: {
+                            type: 'string',
+                            description: 'The page id'
+                        },
+                        attachmentName: {
+                            type: 'string',
+                            description: 'The name of the attachment'
+                        }
+                    },
+                    required: ['issueIdOrKey', 'pageId', 'attachmentName']
+                }
             }
         ]
     };
 });
+
+/**
+ * Function to add an attachment to a Jira issue from a Confluence page.
+ * @param issueIdOrKey
+ * @param pageId
+ * @param attachmentName
+ * @returns {Promise<any>}
+ */
+async function addAttachmentFromConfluence(issueIdOrKey: string, pageId: string, attachmentName: string): Promise<any> {
+    try {
+        // Récupérer l'attachement depuis Confluence
+        const response = await axios.get(`${JIRA_URL}/wiki/rest/api/content/${pageId}/child/attachment`, {
+            headers: getAuthHeaders().headers,
+        });
+
+        // Trouver l'attachement spécifique
+        const attachment = response.data.results.find((attachment: any) => attachment.title === attachmentName);
+
+        if (!attachment) {
+            throw new Error(`Attachment ${attachmentName} not found`);
+        }
+
+        // Télécharger l'attachement
+        const attachmentResponse = await axios.get(`${JIRA_URL}/wiki${attachment._links.download}`, {
+            headers: getAuthHeaders().headers,
+            responseType: 'arraybuffer'
+        });
+
+        // Créer un FormData et ajouter le fichier
+        const formData = new FormData();
+        const blob = new Blob([attachmentResponse.data], { type: attachment.mediaType });
+        formData.append('file', blob, attachmentName);
+
+        // Headers spéciaux pour l'upload de fichiers
+        const headers = {
+            ...getAuthHeaders().headers,
+            'X-Atlassian-Token': 'no-check',
+            'Content-Type': 'multipart/form-data'
+        };
+
+        // Uploader l'attachement sur le ticket Jira
+        const uploadResponse = await axios.post(
+            `${JIRA_URL}/rest/api/3/issue/${issueIdOrKey}/attachments`,
+            formData,
+            { headers }
+        );
+
+        return uploadResponse.data;
+    }
+    catch (error: any) {
+        return {
+            error: error.response?.data || error.message
+        };
+    }
+}
+
 
 /**
  * Function to add an attachment to a Jira issue.
@@ -740,7 +818,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
 
 
-        case 'add_attachment': {
+        case 'add_attachment_from_public_url': {
             const issueIdOrKey: any = request.params.arguments?.issueIdOrKey;
             const imageUrl: any = request.params.arguments?.imageUrl;
 
@@ -749,6 +827,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             }
 
             const response = await addAttachment(issueIdOrKey, imageUrl);
+
+            return {
+                content: [{
+                    type: 'text',
+                    text: JSON.stringify(response, null, 2)
+                }]
+            };
+        }
+
+        case 'add_attachment_from_confluence': {
+            const issueIdOrKey: any = request.params.arguments?.issueIdOrKey;
+            const pageId: any = request.params.arguments?.pageId;
+            const attachmentName: any = request.params.arguments?.attachmentName;
+
+            if (!issueIdOrKey || !pageId || !attachmentName) {
+                throw new Error('Issue id or key, page id and attachment name are required');
+            }
+
+            const response = await addAttachmentFromConfluence(issueIdOrKey, pageId, attachmentName);
 
             return {
                 content: [{
