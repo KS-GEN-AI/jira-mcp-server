@@ -231,10 +231,62 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                     },
                     required: ['project_key']
                 }
+            },
+            {
+                name: 'add_attachment',
+                description: 'Add an attachment to a ticket on Jira on the api /rest/api/3/issue/{issueIdOrKey}/attachments',
+                inputSchema: {
+                    type: 'object',
+                    properties: {
+                        issueIdOrKey: {
+                            type: 'string',
+                            description: 'The issue id or key'
+                        },
+                        imageUrl: {
+                            type: 'string',
+                            description: 'The URL of the image to attach'
+                        }
+                    },
+                    required: ['issueIdOrKey', 'imageUrl']
+                }
             }
         ]
     };
 });
+
+/**
+ * Function to add an attachment to a Jira issue.
+ * @param issueIdOrKey
+ * @param imageUrl
+ * @returns {Promise<any>}
+ */
+async function addAttachment(issueIdOrKey: string, imageUrl: string): Promise<any> {
+    try {
+        // Télécharger l'image depuis l'URL
+        const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        const formData = new FormData();
+        formData.append('file', new Blob([imageResponse.data]), 'image.png');
+
+        // Headers spéciaux pour l'upload de fichiers
+        const headers = {
+            ...getAuthHeaders().headers,
+            'X-Atlassian-Token': 'no-check',
+            'Content-Type': 'multipart/form-data'
+        };
+
+        const response = await axios.post(
+            `${JIRA_URL}/rest/api/3/issue/${issueIdOrKey}/attachments`,
+            formData,
+            { headers }
+        );
+
+        return response.data;
+    } catch (error: any) {
+        return {
+            error: error.response?.data || error.message
+        };
+    }
+}
 
 
 /**
@@ -678,6 +730,25 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             }
 
             const response = await queryAssignable(project_key);
+
+            return {
+                content: [{
+                    type: 'text',
+                    text: JSON.stringify(response, null, 2)
+                }]
+            };
+        }
+
+
+        case 'add_attachment': {
+            const issueIdOrKey: any = request.params.arguments?.issueIdOrKey;
+            const imageUrl: any = request.params.arguments?.imageUrl;
+
+            if (!issueIdOrKey || !imageUrl) {
+                throw new Error('Issue id or key and image URL are required');
+            }
+
+            const response = await addAttachment(issueIdOrKey, imageUrl);
 
             return {
                 content: [{

@@ -48,6 +48,9 @@ This is a TypeScript-based MCP server that provides tools to interact with Jira.
 - **Purpose**: Find assignable users in a project.
 - **Parameters**: `project_key`.
 
+### `add_attachment`
+- **Purpose**: Add an attachment to a ticket.
+- **Parameters**: `issueIdOrKey`, `imageUrl`.
 
 ## Development
 
