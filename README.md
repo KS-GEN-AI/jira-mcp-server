@@ -10,38 +10,44 @@ This is a TypeScript-based MCP server that provides tools to interact with Jira.
 
 ## Features
 
-### Tools
-- `execute_jql` - Execute a JQL query on Jira
-  - Takes JQL query string and number of results as parameters
-  - Returns the full response from Jira
+## Jira Tools
 
-- `get_only_ticket_name_and_description` - Get the name and description of the requested tickets
-  - Takes JQL query string and number of results as parameters
-  - Returns only the ticket name and description
+### `execute_jql`
+- **Purpose**: Run a JQL query.
+- **Parameters**: `jql`, `number_of_results` (default: 1).
 
-- `create_ticket` - Create a ticket on Jira
-  - Takes project key, summary, description, and issue type as required parameters
-  - Creates a new ticket in Jira
+### `get_only_ticket_name_and_description`
+- **Purpose**: Fetch ticket name and description.
+- **Parameters**: `jql`, `number_of_results` (default: 1).
 
-- `list_projects` - List all the projects on Jira
-  - Takes number of results as a parameter
-  - Returns a list of projects
+### `create_ticket`
+- **Purpose**: Create a Jira ticket.
+- **Parameters**: `project.key`, `summary`, `description`, `issuetype.name`, `parent` (optional).
 
-- `delete_ticket` - Delete a ticket on Jira
-  - Takes issue id or key as a required parameter
-  - Deletes the specified ticket
+### `list_projects`
+- **Purpose**: List Jira projects.
+- **Parameters**: `number_of_results` (default: 1).
 
-- `edit_ticket` - Edit a ticket on Jira
-  - Takes issue id or key, summary, description, priority, labels, components, and custom fields as parameters
-  - Edits the specified ticket
+### `delete_ticket`
+- **Purpose**: Delete a ticket.
+- **Parameters**: `issueIdOrKey`.
 
-- `get_all_statuses` - Get all the statuses on Jira
-  - Takes number of results as a parameter
-  - Returns a list of statuses
+### `edit_ticket`
+- **Purpose**: Modify a ticket.
+- **Parameters**: `issueIdOrKey`, `summary` (optional), `description` (optional), `labels` (optional), `parent` (optional).
 
-- `assign_ticket` - Assign a ticket on Jira
-  - Takes account id and issue id or key as required parameters
-  - Assigns the specified ticket to the specified account
+### `get_all_statuses`
+- **Purpose**: Retrieve all statuses.
+- **Parameters**: `number_of_results` (default: 1).
+
+### `assign_ticket`
+- **Purpose**: Assign a ticket to a user.
+- **Parameters**: `accountId`, `issueIdOrKey`.
+
+### `query_assignable`
+- **Purpose**: Find assignable users in a project.
+- **Parameters**: `project_key`.
+
 
 ## Development
 
