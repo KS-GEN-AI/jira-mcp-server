@@ -294,7 +294,9 @@ async function addAttachmentFromConfluence(issueIdOrKey: string, pageId: string,
         const attachment = response.data.results.find((attachment: any) => attachment.title === attachmentName);
 
         if (!attachment) {
-            throw new Error(`Attachment ${attachmentName} not found`);
+            return {
+                error: 'Attachment not found'
+            };
         }
 
         // Télécharger l'attachement
@@ -305,7 +307,7 @@ async function addAttachmentFromConfluence(issueIdOrKey: string, pageId: string,
 
         // Créer un FormData et ajouter le fichier
         const formData = new FormData();
-        const blob = new Blob([attachmentResponse.data], { type: attachment.mediaType });
+        const blob = new Blob([attachmentResponse.data], {type: attachment.mediaType});
         formData.append('file', blob, attachmentName);
 
         // Headers spéciaux pour l'upload de fichiers
@@ -319,12 +321,11 @@ async function addAttachmentFromConfluence(issueIdOrKey: string, pageId: string,
         const uploadResponse = await axios.post(
             `${JIRA_URL}/rest/api/3/issue/${issueIdOrKey}/attachments`,
             formData,
-            { headers }
+            {headers}
         );
 
         return uploadResponse.data;
-    }
-    catch (error: any) {
+    } catch (error: any) {
         return {
             error: error.response?.data || error.message
         };
@@ -341,7 +342,7 @@ async function addAttachmentFromConfluence(issueIdOrKey: string, pageId: string,
 async function addAttachment(issueIdOrKey: string, imageUrl: string): Promise<any> {
     try {
         // Télécharger l'image depuis l'URL
-        const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        const imageResponse = await axios.get(imageUrl, {responseType: 'arraybuffer'});
         const formData = new FormData();
         formData.append('file', new Blob([imageResponse.data]), 'image.png');
 
@@ -355,7 +356,7 @@ async function addAttachment(issueIdOrKey: string, imageUrl: string): Promise<an
         const response = await axios.post(
             `${JIRA_URL}/rest/api/3/issue/${issueIdOrKey}/attachments`,
             formData,
-            { headers }
+            {headers}
         );
 
         return response.data;
@@ -565,11 +566,14 @@ async function editTicket(issueIdOrKey?: string, summary?: string, description?:
         const parentToSend = parent ? {key: parent} : undefined;
 
         //we create the fields object with only the present fields
-        const fields = {
+        let fields: any = {
             summary: summary,
-            description: jiraDescription,
             labels: labels,
             parent: parentToSend
+        }
+
+        if (description) {
+            fields['description'] = jiraDescription;
         }
 
         const response = await axios.put(`${JIRA_URL}/rest/api/3/issue/${issueIdOrKey}`, {
@@ -585,7 +589,6 @@ async function editTicket(issueIdOrKey?: string, summary?: string, description?:
             error: error.response.data
         };
     }
-
 }
 
 /**
