@@ -2,6 +2,10 @@
 
 Talk to Jira
 
+<a href="https://glama.ai/mcp/servers/v7nmyscj80">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/v7nmyscj80/badge" alt="Jira Server MCP server" />
+</a>
+
 This is a TypeScript-based MCP server that provides tools to interact with Jira. It demonstrates core MCP concepts by providing:
 
 - Tools for executing JQL queries
