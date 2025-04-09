@@ -40,7 +40,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         tools: [
             {
                 name: "execute_jql",
-                description: "Execute a JQL query on Jira on the api /rest/api/3/search",
+                description: "Execute a JQL query on Jira on the api /rest/api/3/search. Do not use markdown in your query.",
                 inputSchema: {
                     type: "object",
                     properties: {
@@ -60,7 +60,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             //as the previous tool gets everything in the ticket, we can create a new tool to get only the ticket name and description to fit more in the context of the assistant
             {
                 name: "get_only_ticket_name_and_description",
-                description: "Get the name and description of the requested tickets on the api /rest/api/3/search",
+                description: "Get the name and description of the requested tickets on the api /rest/api/3/search. Do not use markdown in your query.",
                 inputSchema: {
                     type: "object",
                     properties: {
@@ -79,7 +79,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             {
                 name: 'create_ticket',
-                description: 'Create a ticket on Jira on the api /rest/api/3/issue',
+                description: 'Create a ticket on Jira on the api /rest/api/3/issue. Do not use markdown in any field.',
                 inputSchema: {
                     type: 'object',
                     properties: {
@@ -122,7 +122,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             //liste les projets
             {
                 name: 'list_projects',
-                description: 'List all the projects on Jira on the api /rest/api/3/project',
+                description: 'List all the projects on Jira on the api /rest/api/3/project. Do not use markdown in your query.',
                 inputSchema: {
                     type: 'object',
                     properties: {
@@ -137,7 +137,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             //delete a ticket
             {
                 name: 'delete_ticket',
-                description: 'Delete a ticket on Jira on the api /rest/api/3/issue/{issueIdOrKey}',
+                description: 'Delete a ticket on Jira on the api /rest/api/3/issue/{issueIdOrKey}. Do not use markdown in your query.',
                 inputSchema: {
                     type: 'object',
                     properties: {
@@ -152,7 +152,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             //edit ticket : name, description, assignee, priority, labels, components, custom fields
             {
                 name: 'edit_ticket',
-                description: 'Edit a ticket on Jira on the api /rest/api/3/issue/{issueIdOrKey}',
+                description: 'Edit a ticket on Jira on the api /rest/api/3/issue/{issueIdOrKey}. Do not use markdown in any field.',
                 inputSchema: {
                     type: 'object',
                     properties: {
@@ -186,7 +186,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             //get all status
             {
                 name: 'get_all_statuses',
-                description: 'Get all the status on Jira on the api /rest/api/3/status',
+                description: 'Get all the status on Jira on the api /rest/api/3/status. Do not use markdown in your query.',
                 inputSchema: {
                     type: 'object',
                     properties: {
@@ -201,7 +201,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             //assign ticket
             {
                 name: 'assign_ticket',
-                description: 'Assign a ticket on Jira on the api /rest/api/3/issue/{issueIdOrKey}/assignee',
+                description: 'Assign a ticket on Jira on the api /rest/api/3/issue/{issueIdOrKey}/assignee. Do not use markdown in your query.',
                 inputSchema: {
                     type: 'object',
                     properties: {
@@ -220,7 +220,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             //query assignables to ticket
             {
                 name: 'query_assignable',
-                description: 'Query assignables to a ticket on Jira on the api /rest/api/3/user/assignable/search?project={project-name}',
+                description: 'Query assignables to a ticket on Jira on the api /rest/api/3/user/assignable/search?project={project-name}. Do not use markdown in your query.',
                 inputSchema: {
                     type: 'object',
                     properties: {
@@ -234,7 +234,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             {
                 name: 'add_attachment_from_public_url',
-                description: 'Add an attachment from a public url to a ticket on Jira on the api /rest/api/3/issue/{issueIdOrKey}/attachments',
+                description: 'Add an attachment from a public url to a ticket on Jira on the api /rest/api/3/issue/{issueIdOrKey}/attachments. Do not use markdown in your query.',
                 inputSchema: {
                     type: 'object',
                     properties: {
@@ -252,7 +252,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             {
                 name: 'add_attachment_from_confluence',
-                description: 'Add an attachment to a ticket on Jira from a Confluence page by its name on the api /rest/api/3/issue/{issueIdOrKey}/attachments',
+                description: 'Add an attachment to a ticket on Jira from a Confluence page by its name on the api /rest/api/3/issue/{issueIdOrKey}/attachments. Do not use markdown in your query.',
                 inputSchema: {
                     type: 'object',
                     properties: {
