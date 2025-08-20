@@ -2,11 +2,10 @@
 
 Talk to Jira
 
+[![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/KS-GEN-AI/jira-mcp-server)](https://archestra.ai/mcp-catalog/ks-gen-ai__jira-mcp-server)
 <a href="https://glama.ai/mcp/servers/v7nmyscj80">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/v7nmyscj80/badge" alt="Jira Server MCP server" />
 </a>
-
-[![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/KS-GEN-AI/jira-mcp-server)](https://archestra.ai/mcp-catalog/ks-gen-ai__jira-mcp-server)
 
 This is a TypeScript-based MCP server that provides tools to interact with Jira. It demonstrates core MCP concepts by providing:
 
