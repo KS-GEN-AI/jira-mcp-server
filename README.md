@@ -17,58 +17,76 @@ This is a TypeScript-based MCP server that provides tools to interact with Jira.
 ## Jira Tools
 
 ### `execute_jql`
+
 - **Purpose**: Run a JQL query.
 - **Parameters**: `jql`, `number_of_results` (default: 1).
 
 ### `get_only_ticket_name_and_description`
+
 - **Purpose**: Fetch ticket name and description.
 - **Parameters**: `jql`, `number_of_results` (default: 1).
 
 ### `create_ticket`
+
 - **Purpose**: Create a Jira ticket.
 - **Parameters**: `project.key`, `summary`, `description`, `issuetype.name`, `parent` (optional).
 
 ### `list_projects`
+
 - **Purpose**: List Jira projects.
 - **Parameters**: `number_of_results` (default: 1).
 
 ### `delete_ticket`
+
 - **Purpose**: Delete a ticket.
 - **Parameters**: `issueIdOrKey`.
 
 ### `edit_ticket`
+
 - **Purpose**: Modify a ticket.
 - **Parameters**: `issueIdOrKey`, `summary` (optional), `description` (optional), `labels` (optional), `parent` (optional).
 
 ### `get_all_statuses`
+
 - **Purpose**: Retrieve all statuses.
 - **Parameters**: `number_of_results` (default: 1).
 
 ### `assign_ticket`
+
 - **Purpose**: Assign a ticket to a user.
 - **Parameters**: `accountId`, `issueIdOrKey`.
 
 ### `query_assignable`
+
 - **Purpose**: Find assignable users in a project.
 - **Parameters**: `project_key`.
 
-### `add_attachment`
-- **Purpose**: Add an attachment to a ticket.
+### `add_attachment_from_public_url`
+
+- **Purpose**: Add an attachment from a public URL to a ticket.
 - **Parameters**: `issueIdOrKey`, `imageUrl`.
+
+### `add_attachment_from_confluence`
+
+- **Purpose**: Add an attachment from a Confluence page to a ticket.
+- **Parameters**: `issueIdOrKey`, `pageId`, `attachmentName`.
 
 ## Development
 
 Install dependencies:
+
 ```bash
 npm install
 ```
 
 Build the server:
+
 ```bash
 npm run build
 ```
 
 For development with auto-rebuild:
+
 ```bash
 npm run watch
 ```
@@ -85,9 +103,7 @@ On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
   "mcpServers": {
     "Jira communication server": {
       "command": "node",
-      "args": [
-        "/PATH_TO_THE_PROJECT/build/index.js"
-      ],
+      "args": ["/PATH_TO_THE_PROJECT/build/index.js"],
       "env": {
         "JIRA_URL": "https://XXXXXXXX.atlassian.net",
         "JIRA_API_MAIL": "Your email",
