@@ -14,6 +14,10 @@ This is a TypeScript-based MCP server that provides tools to interact with Jira.
 
 ## Features
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/ks-gen-ai-jira-mcp-server).
+
 ## Jira Tools
 
 ### `execute_jql`
